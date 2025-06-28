@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wireless Communication System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        .card h2 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        .card p {
+            color: #7f8c8d;
+        }
+        .icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            color: #3498db;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1> AI-Powered Web Application for Wireless and Mobile Network Design
+</h1>
+        </header>
+
+        <div class="dashboard">
+            <div class="card" onclick="location.href='/calculator'">
+                <div class="icon">📶</div>
+                <h2>Wireless Communication System</h2>
+                <p>Overview of wireless communication technologies and systems</p>
+            </div>
+
+            <div class="card" onclick="location.href='/OFDM'">
+                <div class="icon">⚡</div>
+                <h2>OFDM Systems</h2>
+                <p>Orthogonal Frequency Division Multiplexing technology</p>
+            </div>
+
+            <div class="card" onclick="location.href='/link budget'">
+                <div class="icon">📊</div>
+                <h2>Link Budget Calculation</h2>
+                <p>Tools and methods for calculating communication link budgets</p>
+            </div>
+
+            <div class="card" onclick="location.href='/Cellular System Design'">
+                <div class="icon">📱</div>
+                <h2>Cellular System Design</h2>
+                <p>Design principles for cellular network systems</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // يمكنك إضافة أي JavaScript إضافي هنا
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Wireless Communication System dashboard loaded');
+        });
+    </script>
+</body>
+</html>

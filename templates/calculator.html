@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Wireless Communication System Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #1a252f;
+            --accent: #3498db;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --warning: #e74c3c;
+            --valid: #2ecc71;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            color: var(--dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            animation: fadeIn 0.6s ease-out;
+            border: 1px solid var(--primary);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.8rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-header p {
+            margin-top: 5px;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .card-body {
+            padding: 25px;
+            background-color: var(--light);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+            font-size: 0.95rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-sizing: border-box;
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .unit-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .unit-group input {
+            flex: 3;
+        }
+
+        .unit-group select {
+            flex: 1;
+        }
+
+        .btn {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn:hover {
+            background: linear-gradient(to right, var(--secondary), var(--primary));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .results-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 25px;
+            display: none;
+            animation: slideUp 0.4s ease-out;
+            border: 1px solid var(--accent);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .panel-title {
+            color: var(--secondary);
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .result-value {
+            font-weight: 600;
+            color: var(--secondary);
+            font-family: 'Courier New', monospace;
+        }
+
+        .error {
+            color: var(--warning);
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .loading {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 1.2rem;
+            height: 1.2rem;
+            animation: spin 1s linear infinite;
+            margin-right: 0.75rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #aiResponseContent {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.95em;
+            line-height: 1.7;
+            padding: 1.2rem;
+            text-align: justify;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #2c3e50;
+            background-color: #fefefe;
+            border-radius: 0.5rem;
+            border: 1px solid #ddd;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.03);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Calculator Card -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Wireless Communication System</h2>
+                <p>Bit Rate Calculator</p>
+            </div>
+
+            <div class="card-body">
+                <div class="input-group">
+                    <label for="bandwidth">Bandwidth (BW)</label>
+                    <div class="unit-group">
+                        <input type="number" id="bandwidth" required>
+                        <select id="bandwidthUnit">
+                            <option value="Hz">Hz</option>
+                            <option value="KHz">KHz</option>
+                            <option value="MHz">MHz</option>
+                            <option value="GHz">GHz</option>
+                        </select>
+                    </div>
+                    <span id="bwError" class="error"></span>
+                </div>
+
+                <div class="input-group">
+                    <label for="quantizerBits">Quantizer Bits (n)</label>
+                    <input type="number" id="quantizerBits" required>
+                    <span id="qbError" class="error"></span>
+                </div>
+
+                <div class="input-group">
+                    <label for="sourceRate">Source Encoder Rate (Rs)</label>
+                    <input type="number" id="sourceRate" step="0.01" required>
+                    <span id="srError" class="error"></span>
+                </div>
+
+                <div class="input-group">
+                    <label for="channelRate">Channel Encoder Rate (Rc)</label>
+                    <input type="number" id="channelRate" step="0.01" required>
+                    <span id="crError" class="error"></span>
+                </div>
+
+                <div class="input-group">
+                    <label for="interleaverBits">Interleaver Bits (D)</label>
+                    <input type="number" id="interleaverBits" required>
+                    <span id="ibError" class="error"></span>
+                </div>
+
+                <div class="input-group">
+                    <label for="userData">User Data (bits)</label>
+                    <input type="number" id="userData" required>
+                    <span id="udError" class="error"></span>
+                </div>
+
+                <div class="input-group">
+                    <label for="overhead">Overhead (bits)</label>
+                    <input type="number" id="overhead" required>
+                    <span id="ohError" class="error"></span>
+                </div>
+
+                <button class="btn" onclick="validateAndCalculate()">Calculate Bit Rates</button>
+
+                <div class="results-panel" id="result">
+                    <h3 class="panel-title">Calculation Results</h3>
+                    <div class="result-item">
+                        <span class="result-label">Sampler output bit rate</span>
+                        <span class="result-value" id="samplerOutput">0 bps</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Quantizer output bit rate</span>
+                        <span class="result-value" id="quantizerOutput">0 bps</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Source encoder output bit rate</span>
+                        <span class="result-value" id="sourceEncoderOutput">0 bps</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Channel encoder output bit rate</span>
+                        <span class="result-value" id="channelEncoderOutput">0 bps</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Interleaver output bit rate</span>
+                        <span class="result-value" id="interleaverOutput">0 bps</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Burst Format output bit rate</span>
+                        <span class="result-value" id="burstFormatOutput">0 bps</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Card -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Get AI Insights</h2>
+                <p>Ask the AI about your calculated system parameters</p>
+            </div>
+            <div class="card-body">
+                <div class="input-group">
+                    <label for="aiQuestion">Your Question for the AI:</label>
+                    <textarea id="aiQuestion" rows="4" placeholder="e.g., 'What is the significance of the Quantizer Bits in this system?' or 'How do these calculated bit rates affect overall system performance?'"></textarea>
+                </div>
+                <button class="btn" id="getAiInsightsBtn">
+                    <span id="aiButtonText">Get AI Insights</span>
+                </button>
+                <div class="results-panel" id="aiResponse">
+                    <h3 class="panel-title">AI Assistant's Explanation</h3>
+                    <div id="aiResponseContent">Your AI-generated explanation will appear here.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Helper function to check if a number is a power of 2
+        function isPowerOfTwo(n) {
+            return n > 0 && (n & (n - 1)) === 0;
+        }
+
+        // Function to collect all current input and calculated data
+        function collectAllData() {
+            const bandwidth = document.getElementById('bandwidth').value;
+            const bandwidthUnit = document.getElementById('bandwidthUnit').value;
+            const quantizerBits = document.getElementById('quantizerBits').value;
+            const sourceRate = document.getElementById('sourceRate').value;
+            const channelRate = document.getElementById('channelRate').value;
+            const interleaverBits = document.getElementById('interleaverBits').value;
+            const userData = document.getElementById('userData').value;
+            const overhead = document.getElementById('overhead').value;
+
+            // Ensure values are numbers before using toFixed
+            const samplerOutputValue = parseFloat(document.getElementById('samplerOutput').textContent);
+            const quantizerOutputValue = parseFloat(document.getElementById('quantizerOutput').textContent);
+            const sourceEncoderOutputValue = parseFloat(document.getElementById('sourceEncoderOutput').textContent);
+            const channelEncoderOutputValue = parseFloat(document.getElementById('channelEncoderOutput').textContent);
+            const interleaverOutputValue = parseFloat(document.getElementById('interleaverOutput').textContent);
+            const burstFormatOutputValue = parseFloat(document.getElementById('burstFormatOutput').textContent);
+
+            return {
+                input_data: {
+                    bandwidth: `${bandwidth} ${bandwidthUnit}`,
+                    quantizerBits: quantizerBits,
+                    sourceRate: sourceRate,
+                    channelRate: channelRate,
+                    interleaverBits: interleaverBits,
+                    userData: userData,
+                    overhead: overhead
+                },
+                calculated_results: {
+                    samplerOutput: isNaN(samplerOutputValue) ? "N/A" : samplerOutputValue.toLocaleString() + ' bps',
+                    quantizerOutput: isNaN(quantizerOutputValue) ? "N/A" : quantizerOutputValue.toLocaleString() + ' bps',
+                    sourceEncoderOutput: isNaN(sourceEncoderOutputValue) ? "N/A" : sourceEncoderOutputValue.toLocaleString() + ' bps',
+                    channelEncoderOutput: isNaN(channelEncoderOutputValue) ? "N/A" : channelEncoderOutputValue.toLocaleString() + ' bps',
+                    interleaverOutput: isNaN(interleaverOutputValue) ? "N/A" : interleaverOutputValue.toLocaleString() + ' bps',
+                    burstFormatOutput: isNaN(burstFormatOutputValue) ? "N/A" : burstFormatOutputValue.toLocaleString() + ' bps'
+                }
+            };
+        }
+
+        // Function to send AI request
+        async function sendAiRequest(userQuestion, inputData, calculatedResults) {
+            const aiResponseContentDiv = document.getElementById('aiResponseContent');
+            const aiResponseContainer = document.getElementById('aiResponse');
+            const getAiInsightsBtn = document.getElementById('getAiInsightsBtn');
+            const aiButtonText = document.getElementById('aiButtonText');
+
+            aiResponseContentDiv.style.color = '#2c3e50';
+            aiResponseContentDiv.textContent = "AI is thinking...";
+            aiResponseContainer.style.display = 'block';
+            getAiInsightsBtn.disabled = true;
+            aiButtonText.innerHTML = '<div class="loading"></div> Processing...';
+
+            try {
+                const payload = {
+                    user_ai_question: userQuestion,
+                    input_data: inputData,
+                    calculated_results: calculatedResults
+                };
+
+                const response = await fetch('/get_ai_insights', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                aiResponseContentDiv.textContent = data.ai_response;
+
+            } catch (error) {
+                console.error('Error getting AI insights:', error);
+                aiResponseContentDiv.textContent = `Error: ${error.message}. Please ensure you have calculated results and your AI API key is set correctly.`;
+                aiResponseContentDiv.style.color = '#e74c3c';
+            } finally {
+                getAiInsightsBtn.disabled = false;
+                aiButtonText.textContent = 'Get AI Insights';
+            }
+        }
+
+        function validateAndCalculate() {
+            // Reset all errors and visual states
+            resetValidation();
+
+            // Get input values
+            const bwInput = document.getElementById('bandwidth');
+            const bwValue = bwInput.value.trim();
+            const unit = document.getElementById('bandwidthUnit').value;
+
+            const qbInput = document.getElementById('quantizerBits');
+            const qbValue = qbInput.value.trim();
+
+            const srInput = document.getElementById('sourceRate');
+            const srValue = srInput.value.trim();
+
+            const crInput = document.getElementById('channelRate');
+            const crValue = crInput.value.trim();
+
+            const ibInput = document.getElementById('interleaverBits');
+            const ibValue = ibInput.value.trim();
+
+            const udInput = document.getElementById('userData');
+            const udValue = udInput.value.trim();
+
+            const ohInput = document.getElementById('overhead');
+            const ohValue = ohInput.value.trim();
+
+            let isValid = true;
+
+            // Validate Bandwidth (BW > 0)
+            if (bwValue === '' || isNaN(bwValue)) {
+                showError('bwError', 'Bandwidth is required');
+                bwInput.classList.add('invalid');
+                isValid = false;
+            } else if (parseFloat(bwValue) <= 0) {
+                showError('bwError', 'Bandwidth must be greater than 0');
+                bwInput.classList.add('invalid');
+                isValid = false;
+            } else {
+                bwInput.classList.add('valid');
+            }
+
+            // Validate Quantizer Bits (must be integer)
+            if (qbValue === '' || isNaN(qbValue)) {
+                showError('qbError', 'Quantizer bits are required');
+                qbInput.classList.add('invalid');
+                isValid = false;
+            } else if (!Number.isInteger(parseFloat(qbValue))) {
+                showError('qbError', 'Quantizer bits must be an integer');
+                qbInput.classList.add('invalid');
+                isValid = false;
+            } else if (parseFloat(qbValue) <= 0) {
+                showError('qbError', 'Quantizer bits must be greater than 0');
+                qbInput.classList.add('invalid');
+                isValid = false;
+            } else {
+                qbInput.classList.add('valid');
+            }
+
+            // Validate Source Encoder Rate (0 ≤ Rs ≤ 1)
+            if (srValue === '' || isNaN(srValue)) {
+                showError('srError', 'Source rate is required');
+                srInput.classList.add('invalid');
+                isValid = false;
+            } else if (parseFloat(srValue) < 0 || parseFloat(srValue) > 1) {
+                showError('srError', 'Source rate must be between 0 and 1');
+                srInput.classList.add('invalid');
+                isValid = false;
+            } else {
+                srInput.classList.add('valid');
+            }
+
+            // Validate Channel Encoder Rate (0 ≤ Rc ≤ 1)
+            if (crValue === '' || isNaN(crValue)) {
+                showError('crError', 'Channel rate is required');
+                crInput.classList.add('invalid');
+                isValid = false;
+            } else if (parseFloat(crValue) < 0 || parseFloat(crValue) > 1) {
+                showError('crError', 'Channel rate must be between 0 and 1');
+                crInput.classList.add('invalid');
+                isValid = false;
+            } else {
+                crInput.classList.add('valid');
+            }
+
+            // Validate Interleaver Bits (non-negative integer, power of 2)
+            if (ibValue === '' || isNaN(ibValue)) {
+                showError('ibError', 'Interleaver bits are required');
+                ibInput.classList.add('invalid');
+                isValid = false;
+            } else if (!Number.isInteger(parseFloat(ibValue))) {
+                showError('ibError', 'Interleaver bits must be an integer');
+                ibInput.classList.add('invalid');
+                isValid = false;
+            } else if (parseFloat(ibValue) < 0) {
+                showError('ibError', 'Interleaver bits must be non-negative');
+                ibInput.classList.add('invalid');
+                isValid = false;
+            } else if (parseFloat(ibValue) !== 0 && !isPowerOfTwo(parseFloat(ibValue))) {
+                showError('ibError', 'Interleaver bits must be 0 or a power of 2 (1, 2, 4, 8, etc.)');
+                ibInput.classList.add('invalid');
+                isValid = false;
+            } else {
+                ibInput.classList.add('valid');
+            }
+
+            // Validate User Data (>0)
+            if (udValue === '' || isNaN(udValue)) {
+                showError('udError', 'User data is required');
+                udInput.classList.add('invalid');
+                isValid = false;
+            } else if (parseFloat(udValue) <= 0) {
+                showError('udError', 'User data must be greater than 0');
+                udInput.classList.add('invalid');
+                isValid = false;
+            } else {
+                udInput.classList.add('valid');
+            }
+
+            // Validate Overhead (non-negative)
+            if (ohValue === '' || isNaN(ohValue)) {
+                showError('ohError', 'Overhead is required');
+                ohInput.classList.add('invalid');
+                isValid = false;
+            } else if (parseFloat(ohValue) < 0) {
+                showError('ohError', 'Overhead must be non-negative');
+                ohInput.classList.add('invalid');
+                isValid = false;
+            } else {
+                ohInput.classList.add('valid');
+            }
+
+            if (!isValid) {
+                document.getElementById('result').style.display = 'none';
+                document.getElementById('aiResponse').style.display = 'none';
+                return;
+            }
+
+            // All inputs are valid - perform calculations
+            const bw = parseFloat(bwValue);
+            const n = parseFloat(qbValue);
+            const Rs = parseFloat(srValue);
+            const Rc = parseFloat(crValue);
+            const D = parseFloat(ibValue);
+            const userData = parseFloat(udValue);
+            const overhead = parseFloat(ohValue);
+
+            // Convert BW to Hz
+            let bwHz = bw;
+            switch(unit) {
+                case 'KHz': bwHz *= 1000; break;
+                case 'MHz': bwHz *= 1000000; break;
+                case 'GHz': bwHz *= 1000000000; break;
+            }
+
+            // Perform calculations
+            const sampler = 2 * bwHz;
+            const quantizer = 2 * bwHz * n;
+            const sourceEncoder = Rs * quantizer;
+            const channelEncoder = sourceEncoder / Rc;
+            const interleaver = channelEncoder;
+            const burstFormat = (interleaver / userData) * (userData + overhead);
+
+            // Display results
+            document.getElementById('samplerOutput').textContent = sampler.toLocaleString() + ' bps';
+            document.getElementById('quantizerOutput').textContent = quantizer.toLocaleString() + ' bps';
+            document.getElementById('sourceEncoderOutput').textContent = sourceEncoder.toLocaleString() + ' bps';
+            document.getElementById('channelEncoderOutput').textContent = channelEncoder.toLocaleString() + ' bps';
+            document.getElementById('interleaverOutput').textContent = interleaver.toLocaleString() + ' bps';
+            document.getElementById('burstFormatOutput').textContent = burstFormat.toLocaleString() + ' bps';
+
+            document.getElementById('result').style.display = 'block';
+
+            // Auto-generate AI question
+            const allData = collectAllData();
+            const autoAiQuestion = `Given the following wireless communication system parameters and their calculated bit rates:
+
+Input Parameters:
+${Object.entries(allData.input_data).map(([key, value]) => `  - ${key}: ${value}`).join('\n')}
+
+Calculated Results:
+${Object.entries(allData.calculated_results).map(([key, value]) => `  - ${key}: ${value}`).join('\n')}
+
+Please provide a concise analysis of this system's overall performance, highlighting the significance of each calculated bit rate and any potential considerations or bottlenecks based on these values.`;
+
+            document.getElementById('aiQuestion').value = autoAiQuestion;
+            sendAiRequest(autoAiQuestion, allData.input_data, allData.calculated_results);
+        }
+
+        function resetValidation() {
+            document.querySelectorAll('.error').forEach(el => {
+                el.textContent = '';
+                el.style.display = 'none';
+            });
+            document.querySelectorAll('input').forEach(input => {
+                input.classList.remove('invalid', 'valid');
+            });
+        }
+
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+
+        // AI Integration
+        const getAiInsightsBtn = document.getElementById('getAiInsightsBtn');
+        const aiQuestionInput = document.getElementById('aiQuestion');
+        const aiResponseContainer = document.getElementById('aiResponse');
+        const aiResponseContentDiv = document.getElementById('aiResponseContent');
+        const aiButtonText = document.getElementById('aiButtonText');
+
+        getAiInsightsBtn.addEventListener('click', async () => {
+            const userAiQuestion = aiQuestionInput.value.trim();
+
+            if (!userAiQuestion) {
+                aiResponseContentDiv.textContent = "Please ask a question for AI insights.";
+                aiResponseContentDiv.style.color = '#e74c3c';
+                aiResponseContainer.style.display = 'block';
+                return;
+            }
+            const allData = collectAllData();
+            sendAiRequest(userAiQuestion, allData.input_data, allData.calculated_results);
+        });
+    </script>
+</body>
+</html>

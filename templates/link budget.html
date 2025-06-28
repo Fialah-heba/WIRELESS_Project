@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Wireless Link Budget Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+          --primary: #2c3e50;
+          --secondary: #1a252f;
+          --accent: #3498db;
+          --light: #ecf0f1;
+          --dark: #2c3e50;
+          --warning: #e74c3c;
+          --valid: #2ecc71;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column; /* Changed to column to stack calculator and AI */
+            justify-content: center;
+            align-items: center;
+            color: var(--dark);
+        }
+
+        .calculator-container, .ai-container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            animation: fadeIn 0.6s ease-out;
+            border: 1px solid var(--primary);
+            margin-bottom: 20px; /* Space between containers */
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .calculator-header, .ai-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .calculator-header h2, .ai-header h2 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.8rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        .calculator-header p, .ai-header p {
+            color: #ccc;
+            font-size: 1rem;
+            margin-top: 5px;
+        }
+
+        .calculator-body, .ai-body {
+            padding: 25px;
+            background-color: var(--light);
+        }
+
+        .input-group, .ai-input-group {
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .input-group label, .ai-input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+            font-size: 0.95rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-sizing: border-box; /* Ensures padding doesn't increase width */
+        }
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        input.invalid {
+            border-color: var(--warning);
+            animation: shake 0.5s;
+        }
+
+        input.valid {
+            border-color: var(--valid);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            background-color: white;
+        }
+
+        .unit-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .unit-group input {
+            flex: 3;
+        }
+
+        .unit-group select {
+            flex: 1;
+        }
+
+        .calculate-btn, .ai-btn {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .calculate-btn:hover, .ai-btn:hover {
+            background: linear-gradient(to right, var(--secondary), var(--primary));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .calculate-btn:active, .ai-btn:active {
+            transform: translateY(0);
+        }
+
+        .results-container, .ai-response-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 25px;
+            display: none;
+            animation: slideUp 0.4s ease-out;
+            border: 1px solid var(--accent);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .results-title, .ai-response-title {
+            color: var(--secondary);
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .result-item {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: 500;
+            color: var(--dark);
+            margin-bottom: 5px;
+            flex-shrink: 0; /* Prevent label from shrinking */
+            margin-right: 10px;
+        }
+
+        .result-value {
+            font-weight: 600;
+            color: var(--secondary);
+            font-family: 'Roboto Mono', monospace; /* Changed to Roboto Mono */
+            display: block;
+            padding: 5px 0;
+            word-break: break-all; /* Allow long values to break */
+            text-align: right; /* Align value to the right */
+        }
+
+        .error {
+            color: var(--warning);
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        /* Loading spinner for AI button */
+        .loading {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 1.5rem;
+            height: 1.5rem;
+            animation: spin 1s linear infinite;
+            margin-right: 0.75rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #aiResponseContent {
+            font-family: 'Roboto Mono', monospace; /* Changed font */
+            font-size: 1.05em;
+            line-height: 1.8; /* Improved line spacing */
+            padding: 1.2rem; /* More internal padding */
+            text-align: justify; /* Justify text for a cleaner block appearance */
+            white-space: pre-wrap; /* Preserve formatting and wrap lines */
+            word-wrap: break-word; /* Break long words */
+            color: #2c3e50; /* Slightly darker text for readability */
+            background-color: #fefefe; /* Lighter background for the text area */
+            border-radius: 0.5rem; /* Slightly less rounded for the inner content */
+            border: 1px solid #ddd; /* Subtle border for definition */
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.03); /* Soft inner shadow */
+        }
+
+        @media (max-width: 768px) {
+            .two-columns {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator-container">
+        <div class="calculator-header">
+            <h2>Wireless Link Budget Calculator</h2>
+            <p>Calculate Received Power and Transmit Power</p>
+        </div>
+
+        <div class="calculator-body">
+            <div class="two-columns">
+                <div>
+                    <div class="input-group">
+                        <label for="pathloss">Path Loss</label>
+                        <div class="unit-group">
+                            <input type="number" id="pathloss" required>
+                            <select id="pathlossUnit">
+                                <option value="dB">dB</option>
+                                <option value="dBm">dBm</option>
+                                <option value="W">Watt</option>
+                            </select>
+                        </div>
+                        <span id="pathlossError" class="error"></span>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="frequency">Frequency</label>
+                        <div class="unit-group">
+                            <input type="number" id="frequency" required>
+                            <select id="frequencyUnit">
+                                <option value="Hz">Hz</option>
+                                <option value="KHz">KHz</option>
+                                <option value="MHz">MHz</option>
+                                <option value="GHz">GHz</option>
+                            </select>
+                        </div>
+                        <span id="frequencyError" class="error"></span>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="txGain">Transmit Antenna Gain</label>
+                        <div class="unit-group">
+                            <input type="number" id="txGain" required>
+                            <select id="txGainUnit">
+                                <option value="dB">dB</option>
+                                <option value="dBm">dBm</option>
+                                <option value="W">Watt</option>
+                            </select>
+                        </div>
+                        <span id="txGainError" class="error"></span>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="rxGain">Receive Antenna Gain</label>
+                        <div class="unit-group">
+                            <input type="number" id="rxGain" required>
+                            <select id="rxGainUnit">
+                                <option value="dB">dB</option>
+                                <option value="dBm">dBm</option>
+                                <option value="W">Watt</option>
+                            </select>
+                        </div>
+                        <span id="rxGainError" class="error"></span>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="input-group">
+                        <label for="dataRate">Data Rate</label>
+                        <div class="unit-group">
+                            <input type="number" id="dataRate" required>
+                            <select id="dataRateUnit">
+                                <option value="bps">bps</option>
+                                <option value="Kbps">Kbps</option>
+                            </select>
+                        </div>
+                        <span id="dataRateError" class="error"></span>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="feedlineLoss">Antenna Feed Line Loss</label>
+                        <div class="unit-group">
+                            <input type="number" id="feedlineLoss" required>
+                            <select id="feedlineLossUnit">
+                                <option value="dB">dB</option>
+                                <option value="dBm">dBm</option>
+                                <option value="W">Watt</option>
+                            </select>
+                        </div>
+                        <span id="feedlineLossError" class="error"></span>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="otherLosses">Other Losses</label>
+                        <div class="unit-group">
+                            <input type="number" id="otherLosses" required>
+                            <select id="otherLossesUnit">
+                                <option value="dB">dB</option>
+                                <option value="dBm">dBm</option>
+                                <option value="W">Watt</option>
+                            </select>
+                        </div>
+                        <span id="otherLossesError" class="error"></span>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="fadeMargin">Fade Margin</label>
+                        <div class="unit-group">
+                            <input type="number" id="fadeMargin" required>
+                            <select id="fadeMarginUnit">
+                                <option value="dB">dB</option>
+                                <option value="dBm">dBm</option>
+                                <option value="W">Watt</option>
+                            </select>
+                        </div>
+                        <span id="fadeMarginError" class="error"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="two-columns">
+                <div>
+                    <div class="input-group">
+                        <label for="rxAmplifierGain">Receiver Amplifier Gain</label>
+                        <div class="unit-group">
+                            <input type="number" id="rxAmplifierGain" required>
+                            <select id="rxAmplifierGainUnit">
+                                <option value="dB">dB</option>
+                                <option value="dBm">dBm</option>
+                                <option value="W">Watt</option>
+                            </select>
+                        </div>
+                        <span id="rxAmplifierGainError" class="error"></span>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="noiseFigure">Noise Figure Total</label>
+                        <div class="unit-group">
+                            <input type="number" id="noiseFigure" required>
+                            <select id="noiseFigureUnit">
+                                <option value="dB">dB</option>
+                                <option value="dBm">dBm</option>
+                                <option value="W">Watt</option>
+                            </select>
+                        </div>
+                        <span id="noiseFigureError" class="error"></span>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="noiseTemperature">Noise Temperature (Kelvin)</label>
+                        <input type="number" id="noiseTemperature" required>
+                        <span id="noiseTemperatureError" class="error"></span>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="input-group">
+                        <label for="linkMargin">Link Margin</label>
+                        <div class="unit-group">
+                            <input type="number" id="linkMargin" required>
+                            <select id="linkMarginUnit">
+                                <option value="dB">dB</option>
+                                <option value="dBm">dBm</option>
+                                <option value="W">Watt</option>
+                            </select>
+                        </div>
+                        <span id="linkMarginError" class="error"></span>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="modulation">Modulation Scheme</label>
+                        <select id="modulation" required>
+                            <option value="BPSK/QPSK">BPSK/QPSK</option>
+                            <option value="8-PSK">8-PSK</option>
+                            <option value="16-PSK">16-PSK</option>
+                        </select>
+                        <span id="modulationError" class="error"></span>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="ber">Maximum Bit Error Rate (BER)</label>
+                        <select id="ber" required>
+                            <option value="0.1">0.1</option>
+                            <option value="0.01">0.01</option>
+                            <option value="0.001">0.001</option>
+                            <option value="0.0001">0.0001 (10^-4)</option>
+                            <option value="0.00001">0.00001 (10^-5)</option>
+                            <option value="0.000001">0.000001 (10^-6)</option>
+                            <option value="0.0000001">0.0000001 (10^-7)</option>
+                            <option value="0">Other (considered as 0)</option>
+                        </select>
+                        <span id="berError" class="error"></span>
+                    </div>
+                </div>
+            </div>
+
+            <button class="calculate-btn" onclick="validateAndCalculate()">Calculate Powers</button>
+
+            <div class="results-container" id="result">
+                <h3 class="results-title">Calculation Results</h3>
+                <div class="result-item">
+                    <span class="result-label">Required Eb/No</span>
+                    <span class="result-value" id="ebNoValue">0 dB</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Received Power (Pr)</span>
+                    <span class="result-value" id="receivedPower">0 dB</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Transmit Power (Pt)</span>
+                    <span class="result-value" id="transmitPower">0 dB</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Received Power Formula</span>
+                    <span class="result-value">Pr = LM - 228.6 + 10log(T) + NF + 10log(R) + Eb/No</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Transmit Power Formula</span>
+                    <span class="result-value">Pt = Pr + Path Loss + Feed Loss + Other Losses + Fade Margin - GT - GR - Ga</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="ai-container">
+        <div class="ai-header">
+            <h2>Get AI Insights</h2>
+            <p>Ask the AI about your calculated link budget parameters.</p>
+        </div>
+        <div class="ai-body">
+            <div class="ai-input-group">
+                <label for="aiQuestion">Your Question for the AI:</label>
+                <textarea id="aiQuestion" rows="4" placeholder="e.g., 'What do these received power and transmit power values mean for my wireless link?' or 'How does the fade margin impact the link budget?'"></textarea>
+            </div>
+            <button class="ai-btn" id="getAiInsightsBtn">
+                <span id="aiButtonText">Get AI Insights</span>
+            </button>
+            <div class="ai-response-container" id="aiResponse">
+                <h3 class="ai-response-title">AI Assistant's Explanation</h3>
+                <div id="aiResponseContent">Your AI-generated explanation will appear here.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Modulation scheme to Eb/No lookup tables
+        const modulationCurves = {
+            "BPSK/QPSK": {
+                "0.1": 1.5,
+                "0.01": 4.3,
+                "0.001": 6.8,
+                "0.0001": 8.4,
+                "0.00001": 9.6,
+                "0.000001": 10.5,
+                "0.0000001": 11.3,
+                "0": 12.0
+            },
+            "8-PSK": {
+                "0.1": 5.0,
+                "0.01": 7.8,
+                "0.001": 10.4,
+                "0.0001": 12.0,
+                "0.00001": 13.5,
+                "0.000001": 14.0,
+                "0.0000001": 15.3,
+                "0": 15.7
+            },
+            "16-PSK": {
+                "0.1": 8.0,
+                "0.01": 11.7,
+                "0.001": 14.5,
+                "0.0001": 16.0,
+                "0.00001": 16.5,
+                "0.000001": 19.8,
+                "0.0000001": 20.8,
+                "0": 21.5
+            }
+        };
+
+        // Convert any unit to dB (or dBm if it's a power value)
+        function toDB(value, unit) {
+            const val = parseFloat(value);
+            if (unit === "dB") return val;
+            if (unit === "dBm") return val; // Already in dBm, consistent with other dB values for addition/subtraction
+            if (unit === "W") return 10 * Math.log10(val * 1000); // Convert Watt to dBm
+            return 0;
+        }
+
+        // Get Eb/No for given modulation and BER
+        function getEbNo(modulation, ber) {
+            if (modulationCurves[modulation] && modulationCurves[modulation][ber]) {
+                return modulationCurves[modulation][ber];
+            }
+            return modulationCurves[modulation]["0"]; // Use the "0" value for other cases
+        }
+
+        // Function to collect all current input and calculated data
+        function collectAllData() {
+            const inputs = {
+                pathloss: document.getElementById('pathloss').value.trim(),
+                pathlossUnit: document.getElementById('pathlossUnit').value,
+                frequency: document.getElementById('frequency').value.trim(),
+                frequencyUnit: document.getElementById('frequencyUnit').value,
+                txGain: document.getElementById('txGain').value.trim(),
+                txGainUnit: document.getElementById('txGainUnit').value,
+                rxGain: document.getElementById('rxGain').value.trim(),
+                rxGainUnit: document.getElementById('rxGainUnit').value,
+                dataRate: document.getElementById('dataRate').value.trim(),
+                dataRateUnit: document.getElementById('dataRateUnit').value,
+                feedlineLoss: document.getElementById('feedlineLoss').value.trim(),
+                feedlineLossUnit: document.getElementById('feedlineLossUnit').value,
+                otherLosses: document.getElementById('otherLosses').value.trim(),
+                otherLossesUnit: document.getElementById('otherLossesUnit').value,
+                fadeMargin: document.getElementById('fadeMargin').value.trim(),
+                fadeMarginUnit: document.getElementById('fadeMarginUnit').value,
+                rxAmplifierGain: document.getElementById('rxAmplifierGain').value.trim(),
+                rxAmplifierGainUnit: document.getElementById('rxAmplifierGainUnit').value,
+                noiseFigure: document.getElementById('noiseFigure').value.trim(),
+                noiseFigureUnit: document.getElementById('noiseFigureUnit').value,
+                noiseTemperature: document.getElementById('noiseTemperature').value.trim(),
+                linkMargin: document.getElementById('linkMargin').value.trim(),
+                linkMarginUnit: document.getElementById('linkMarginUnit').value,
+                modulation: document.getElementById('modulation').value,
+                ber: document.getElementById('ber').value
+            };
+
+            // Ensure values are numbers before using toFixed
+            const ebNoValue = parseFloat(document.getElementById('ebNoValue').textContent);
+            const receivedPowerValue = parseFloat(document.getElementById('receivedPower').textContent);
+            const transmitPowerValue = parseFloat(document.getElementById('transmitPower').textContent);
+
+            return {
+                input_data: {
+                    pathloss: `${inputs.pathloss} ${inputs.pathlossUnit}`,
+                    frequency: `${inputs.frequency} ${inputs.frequencyUnit}`,
+                    txGain: `${inputs.txGain} ${inputs.txGainUnit}`,
+                    rxGain: `${inputs.rxGain} ${inputs.rxGainUnit}`,
+                    dataRate: `${inputs.dataRate} ${inputs.dataRateUnit}`,
+                    feedlineLoss: `${inputs.feedlineLoss} ${inputs.feedlineLossUnit}`,
+                    otherLosses: `${inputs.otherLosses} ${inputs.otherLossesUnit}`,
+                    fadeMargin: `${inputs.fadeMargin} ${inputs.fadeMarginUnit}`,
+                    rxAmplifierGain: `${inputs.rxAmplifierGain} ${inputs.rxAmplifierGainUnit}`,
+                    noiseFigure: `${inputs.noiseFigure} ${inputs.noiseFigureUnit}`,
+                    noiseTemperature: `${inputs.noiseTemperature} Kelvin`,
+                    linkMargin: `${inputs.linkMargin} ${inputs.linkMarginUnit}`,
+                    modulation: inputs.modulation,
+                    ber: inputs.ber
+                },
+                calculated_results: {
+                    requiredEbNo: isNaN(ebNoValue) ? "N/A" : ebNoValue.toFixed(2) + ' dB',
+                    receivedPower: isNaN(receivedPowerValue) ? "N/A" : receivedPowerValue.toFixed(2) + ' dBm',
+                    transmitPower: isNaN(transmitPowerValue) ? "N/A" : transmitPowerValue.toFixed(2) + ' dBm'
+                }
+            };
+        }
+
+
+        // Function to send AI request
+        async function sendAiRequest(userQuestion, inputData, calculatedResults) {
+            aiResponseContentDiv.style.color = '#333';
+            aiResponseContentDiv.textContent = "AI is thinking...";
+            aiResponseContainer.style.display = 'block';
+            getAiInsightsBtn.disabled = true;
+            aiButtonText.innerHTML = '<div class="loading"></div> Processing...';
+
+            try {
+                const payload = {
+                    user_ai_question: userQuestion,
+                    input_data: inputData,
+                    calculated_results: calculatedResults
+                };
+
+                const response = await fetch('/get_ai_insights', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                aiResponseContentDiv.textContent = data.ai_response;
+
+            } catch (error) {
+                console.error('Error getting AI insights:', error);
+                aiResponseContentDiv.textContent = `Error: ${error.message}. Please ensure you have calculated results and your AI API key is set correctly.`;
+                aiResponseContentDiv.style.color = '#e74c3c'; // Red for error
+            } finally {
+                getAiInsightsBtn.disabled = false;
+                aiButtonText.textContent = 'Get AI Insights';
+            }
+        }
+
+
+        function validateAndCalculate() {
+            // Reset validation
+            document.querySelectorAll('.error').forEach(el => {
+                el.textContent = '';
+                el.style.display = 'none';
+            });
+            document.querySelectorAll('input').forEach(input => {
+                input.classList.remove('invalid', 'valid');
+            });
+            // Hide results and AI response initially
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('aiResponse').style.display = 'none';
+            aiResponseContentDiv.textContent = ''; // Clear previous AI response
+
+            // Get all input values (using their IDs for validation below)
+            const inputs = {
+                pathloss: document.getElementById('pathloss'),
+                frequency: document.getElementById('frequency'),
+                txGain: document.getElementById('txGain'),
+                rxGain: document.getElementById('rxGain'),
+                dataRate: document.getElementById('dataRate'),
+                feedlineLoss: document.getElementById('feedlineLoss'),
+                otherLosses: document.getElementById('otherLosses'),
+                fadeMargin: document.getElementById('fadeMargin'),
+                rxAmplifierGain: document.getElementById('rxAmplifierGain'),
+                noiseFigure: document.getElementById('noiseFigure'),
+                noiseTemperature: document.getElementById('noiseTemperature'),
+                linkMargin: document.getElementById('linkMargin'),
+                modulation: document.getElementById('modulation'),
+                ber: document.getElementById('ber')
+            };
+
+            // Get unit values directly
+            const units = {
+                pathlossUnit: document.getElementById('pathlossUnit').value,
+                frequencyUnit: document.getElementById('frequencyUnit').value,
+                txGainUnit: document.getElementById('txGainUnit').value,
+                rxGainUnit: document.getElementById('rxGainUnit').value,
+                dataRateUnit: document.getElementById('dataRateUnit').value,
+                feedlineLossUnit: document.getElementById('feedlineLossUnit').value,
+                otherLossesUnit: document.getElementById('otherLossesUnit').value,
+                fadeMarginUnit: document.getElementById('fadeMarginUnit').value,
+                rxAmplifierGainUnit: document.getElementById('rxAmplifierGainUnit').value,
+                noiseFigureUnit: document.getElementById('noiseFigureUnit').value,
+                linkMarginUnit: document.getElementById('linkMarginUnit').value
+            };
+
+
+            // Validate all required inputs
+            let isValid = true;
+            for (const key in inputs) {
+                const inputElement = inputs[key];
+                if (inputElement.tagName === 'SELECT') {
+                    // No numerical validation for select, just check if it exists (which it will)
+                    inputElement.classList.add('valid');
+                    continue;
+                }
+
+                const value = inputElement.value.trim();
+                const errorElementId = key + 'Error';
+
+                if (value === '' || isNaN(value)) {
+                    document.getElementById(errorElementId).textContent = 'This field is required and must be a number.';
+                    document.getElementById(errorElementId).style.display = 'block';
+                    inputElement.classList.add('invalid');
+                    isValid = false;
+                } else if (parseFloat(value) < 0 && key !== 'pathloss' && key !== 'fadeMargin' && key !== 'noiseFigure' && key !== 'noiseTemperature' && key !== 'linkMargin' && key !== 'txGain' && key !== 'rxGain' && key !== 'rxAmplifierGain') {
+                    // General check for non-negative values where applicable
+                    document.getElementById(errorElementId).textContent = 'Value must be non-negative.';
+                    document.getElementById(errorElementId).style.display = 'block';
+                    inputElement.classList.add('invalid');
+                    isValid = false;
+                } else if (key === 'noiseTemperature' && parseFloat(value) <= 0) {
+                     document.getElementById(errorElementId).textContent = 'Noise Temperature must be greater than 0 Kelvin.';
+                     document.getElementById(errorElementId).style.display = 'block';
+                     inputElement.classList.add('invalid');
+                     isValid = false;
+                } else {
+                    inputElement.classList.add('valid');
+                }
+            }
+
+            if (!isValid) {
+                return;
+            }
+
+            // Convert all values to appropriate units
+            const LM = toDB(inputs.linkMargin.value, units.linkMarginUnit);
+            const T = parseFloat(inputs.noiseTemperature.value);
+            const NF = toDB(inputs.noiseFigure.value, units.noiseFigureUnit);
+            const PL = toDB(inputs.pathloss.value, units.pathlossUnit);
+            const FL = toDB(inputs.feedlineLoss.value, units.feedlineLossUnit);
+            const OL = toDB(inputs.otherLosses.value, units.otherLossesUnit);
+            const FM = toDB(inputs.fadeMargin.value, units.fadeMarginUnit);
+            const GT = toDB(inputs.txGain.value, units.txGainUnit);
+            const GR = toDB(inputs.rxGain.value, units.rxGainUnit);
+            const Ga = toDB(inputs.rxAmplifierGain.value, units.rxAmplifierGainUnit);
+
+            // Convert data rate to bps
+            let R = parseFloat(inputs.dataRate.value);
+            if (units.dataRateUnit === 'Kbps') R *= 1000;
+
+            // Get required Eb/No
+            const EbNo = getEbNo(inputs.modulation.value, inputs.ber.value);
+
+            // Calculate received power (Pr)
+            // Boltzmann's constant k = 1.38 x 10^-23 J/K
+            // In dB, 10log10(k) = 10log10(1.38e-23) = -228.6 dBJ/K (approx)
+            // The formula is Pr = LM + k (in dB) + 10log(T) + NF + 10log(R) + Eb/No
+            // Note: Pr, LM, NF, EbNo are in dB/dBm, T in Kelvin, R in bps.
+            // RdB = 10log10(R) converts R to dB-Hz.
+            // So Pr is in dBm.
+            const k_boltzmann_db = -228.6;
+            const TdB = 10 * Math.log10(T);
+            const RdB = 10 * Math.log10(R);
+            const Pr = LM + k_boltzmann_db + TdB + NF + RdB + EbNo;
+
+            // Calculate transmit power (Pt)
+            // Pt = Pr + Path Loss + Feed Line Loss + Other Losses + Fade Margin - Transmit Gain - Receive Gain - Receiver Amplifier Gain
+            // All terms are in dB/dBm
+            const Pt = Pr + PL + FL + OL + FM - GT - GR - Ga;
+
+
+            // Display results
+            document.getElementById('ebNoValue').textContent = EbNo.toFixed(2) + ' dB';
+            document.getElementById('receivedPower').textContent = Pr.toFixed(2) + ' dBm'; // Assuming Pr is in dBm as per formula
+            document.getElementById('transmitPower').textContent = Pt.toFixed(2) + ' dBm'; // Assuming Pt is in dBm
+
+            document.getElementById('result').style.display = 'block';
+
+            // --- AUTO-TRIGGER AI INSIGHTS AFTER SUCCESSFUL CALCULATION ---
+            const allData = collectAllData();
+            // Refine the auto-generated question for better context for the AI
+            const autoAiQuestion = `Given the following wireless link budget parameters and their calculated Received Power (Pr) and Transmit Power (Pt):
+
+Input Parameters:
+${Object.entries(allData.input_data).map(([key, value]) => `  - ${key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}: ${value}`).join('\n')}
+
+Calculated Results:
+${Object.entries(allData.calculated_results).map(([key, value]) => `  - ${key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}: ${value}`).join('\n')}
+
+Please provide a concise analysis of this wireless link, explaining the significance of the calculated Received Power and Transmit Power values in relation to the input parameters. Discuss how each major input (like Path Loss, Gains, Losses, Fade Margin, Noise Figure, and Modulation Scheme) contributes to the overall link budget and signal reliability.`;
+
+
+            aiQuestionInput.value = autoAiQuestion; // Set the textarea with the auto-generated question
+            sendAiRequest(autoAiQuestion, allData.input_data, allData.calculated_results);
+            // --- END AUTO-TRIGGER ---
+        }
+
+
+        // --- AI Integration JavaScript ---
+        const getAiInsightsBtn = document.getElementById('getAiInsightsBtn');
+        const aiQuestionInput = document.getElementById('aiQuestion');
+        const aiResponseContainer = document.getElementById('aiResponse');
+        const aiResponseContentDiv = document.getElementById('aiResponseContent');
+        const aiButtonText = document.getElementById('aiButtonText');
+
+        // Event listener for the "Get AI Insights" button (for custom questions)
+        getAiInsightsBtn.addEventListener('click', async () => {
+            const userAiQuestion = aiQuestionInput.value.trim();
+
+            if (!userAiQuestion) {
+                aiResponseContentDiv.textContent = "Please ask a question for AI insights.";
+                aiResponseContentDiv.style.color = '#e74c3c'; // Error color
+                aiResponseContainer.style.display = 'block'; // Show container
+                return;
+            }
+            const allData = collectAllData(); // Collect current data
+            sendAiRequest(userAiQuestion, allData.input_data, allData.calculated_results);
+        });
+        // --- End AI Integration JavaScript ---
+
+    </script>
+</body>
+</html>

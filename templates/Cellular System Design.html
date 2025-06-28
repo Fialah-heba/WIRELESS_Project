@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cellular Network Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+          --primary: #2c3e50;
+          --secondary: #1a252f;
+          --accent: #3498db;
+          --light: #ecf0f1;
+          --dark: #2c3e50;
+          --warning: #e74c3c;
+          --valid: #2ecc71;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column; /* Changed to column to stack calculator and AI */
+            justify-content: center;
+            align-items: center;
+            color: var(--dark);
+        }
+
+        .calculator-container, .ai-container { /* Apply common styling for both sections */
+            width: 100%;
+            max-width: 600px; /* Adjust max-width for overall layout */
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            animation: fadeIn 0.6s ease-out;
+            border: 1px solid var(--primary);
+            margin-bottom: 20px; /* Space between sections */
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .calculator-header, .ai-header { /* Common header styling */
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .calculator-header h2, .ai-header h2 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.8rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        .ai-header p { /* Specific to AI header */
+            margin-top: 5px;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .calculator-body, .ai-body { /* Common body padding */
+            padding: 25px;
+            background-color: var(--light);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .input-group label, .ai-input-group label { /* Common label styling */
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+            font-size: 0.95rem;
+        }
+
+        input, select, textarea { /* Added textarea */
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-sizing: border-box; /* Ensures padding doesn't affect width */
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        input.invalid {
+            border-color: var(--warning);
+            animation: shake 0.5s;
+        }
+
+        input.valid {
+            border-color: var(--valid);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        input:focus, select:focus, textarea:focus { /* Added textarea focus */
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            background-color: white;
+        }
+
+        .unit-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .unit-group input {
+            flex: 3;
+        }
+
+        .unit-group select {
+            flex: 1;
+        }
+
+        .calculate-btn, .ai-btn { /* Common button styling */
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex; /* For loading spinner */
+            align-items: center;
+            justify-content: center;
+        }
+
+        .calculate-btn:hover, .ai-btn:hover {
+            background: linear-gradient(to right, var(--secondary), var(--primary));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .calculate-btn:active, .ai-btn:active {
+            transform: translateY(0);
+        }
+
+        .results-container, .ai-response-container { /* Common results styling */
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 25px;
+            display: none;
+            animation: slideUp 0.4s ease-out;
+            border: 1px solid var(--accent);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .results-title, .ai-response-title { /* Common title styling */
+            color: var(--secondary);
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .result-value {
+            font-weight: 600;
+            color: var(--secondary);
+            font-family: 'Courier New', monospace;
+        }
+
+        .error {
+            color: var(--warning);
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .decoration {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+        }
+
+        .decoration-1 {
+            top: -30px;
+            right: -30px;
+            width: 120px;
+            height: 120px;
+        }
+
+        .decoration-2 {
+            bottom: -40px;
+            left: -40px;
+            width: 150px;
+            height: 150px;
+        }
+
+        /* Loading spinner for AI button */
+        .loading {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 1.2rem;
+            height: 1.2rem;
+            animation: spin 1s linear infinite;
+            margin-right: 0.75rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* New styles for AI response content */
+        #aiResponseContent {
+            font-family: 'Roboto Mono', monospace; /* Changed font */
+            font-size: 0.95em;
+            line-height: 1.7; /* Improved line spacing */
+            padding: 1.2rem; /* More internal padding */
+            text-align: justify; /* Justify text for a cleaner block appearance */
+            white-space: pre-wrap; /* Preserve formatting and wrap lines */
+            word-wrap: break-word; /* Break long words */
+            color: #2c3e50; /* Slightly darker text for readability */
+            background-color: #fefefe; /* Lighter background for the text area */
+            border-radius: 0.5rem; /* Slightly less rounded for the inner content */
+            border: 1px solid #ddd; /* Subtle border for definition */
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.03); /* Soft inner shadow */
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator-container">
+        <div class="calculator-header">
+            <div class="decoration decoration-1"></div>
+            <div class="decoration decoration-2"></div>
+            <h2>Cellular Network Calculator</h2>
+            <p>Network Parameters Calculator</p>
+        </div>
+
+        <div class="calculator-body">
+            <div class="input-group">
+                <label for="area">Service Area</label>
+                <div class="unit-group">
+                    <input type="number" id="area" required>
+                    <select id="areaUnit">
+                        <option value="m2">m²</option>
+                        <option value="km2">km²</option>
+                    </select>
+                </div>
+                <span id="areaError" class="error"></span>
+            </div>
+
+            <div class="input-group">
+                <label for="subcarriers">Number of Subcarriers</label>
+                <input type="number" id="subcarriers" required>
+                <span id="subError" class="error"></span>
+            </div>
+
+            <div class="input-group">
+                <label for="callsPerDay">Number of Calls per Day</label>
+                <input type="number" id="callsPerDay" required>
+                <span id="callsError" class="error"></span>
+            </div>
+
+            <div class="input-group">
+                <label for="callDuration">Average Call Duration (minutes)</label>
+                <input type="number" id="callDuration" step="0.1" required>
+                <span id="durationError" class="error"></span>
+            </div>
+
+            <div class="input-group">
+                <label for="minSIR">Minimum SIR</label>
+                <div class="unit-group">
+                    <input type="number" id="minSIR" step="0.01" required>
+                    <select id="sirUnit">
+                        <option value="dB">dB</option>
+                        <option value="dBm">dBm</option>
+                        <option value="W">Watt</option>
+                    </select>
+                </div>
+                <span id="sirError" class="error"></span>
+            </div>
+
+            <div class="input-group">
+                <label for="refPower">Power at Reference Distance</label>
+                <div class="unit-group">
+                    <input type="number" id="refPower" step="0.01" required>
+                    <select id="powerUnit">
+                        <option value="dB">dB</option>
+                        <option value="dBm">dBm</option>
+                        <option value="W">Watt</option>
+                    </select>
+                </div>
+                <span id="powerError" class="error"></span>
+            </div>
+
+            <div class="input-group">
+                <label for="refDistance">Reference Distance (m)</label>
+                <input type="number" id="refDistance" required>
+                <span id="distanceError" class="error"></span>
+            </div>
+
+            <div class="input-group">
+                <label for="pathLoss">Path Loss Exponent</label>
+                <input type="number" id="pathLoss" step="0.1" required>
+                <span id="pathError" class="error"></span>
+            </div>
+
+            <div class="input-group">
+                <label for="rxSensitivity">Receiver Sensitivity (μW)</label>
+                <input type="number" id="rxSensitivity" step="0.0001" required>
+                <span id="rxError" class="error"></span>
+            </div>
+
+            <button class="calculate-btn" onclick="validateAndCalculate()">Calculate Network Parameters</button>
+
+            <div class="results-container" id="result">
+                <h3 class="results-title">Calculation Results</h3>
+                <div class="result-item">
+                    <span class="result-label">Maximum Distance (m)</span>
+                    <span class="result-value" id="maxDistance">0</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Cell Area (m²)</span>
+                    <span class="result-value" id="cellArea">0</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Number of Cells</span>
+                    <span class="result-value" id="numCells">0</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Total Traffic Load (Erlangs)</span>
+                    <span class="result-value" id="totalTraffic">0</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Traffic per Cell (Erlangs)</span>
+                    <span class="result-value" id="cellTraffic">0</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Cells per Cluster</span>
+                    <span class="result-value" id="cellsPerCluster">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="ai-container" id="aiSection">
+        <div class="ai-header">
+            <h2>Get AI Insights</h2>
+            <p>Ask the AI about your calculated Cellular Network parameters.</p>
+        </div>
+        <div class="ai-body">
+            <div class="ai-input-group">
+                <label for="aiQuestion">Your Question for the AI:</label>
+                <textarea id="aiQuestion" rows="4" placeholder="e.g., 'Explain the relationship between maximum distance and receiver sensitivity.' or 'What is the significance of cells per cluster?'"></textarea>
+            </div>
+            <button class="ai-btn" id="getAiInsightsBtn">
+                <span id="aiButtonText">Get AI Insights</span>
+            </button>
+            <div class="ai-response-container" id="aiResponse">
+                <h3 class="ai-response-title">AI Assistant's Explanation</h3>
+                <div id="aiResponseContent">Your AI-generated explanation will appear here.</div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Global variable to store calculated results for AI
+        let currentCellularResults = {};
+
+        // Helper function for input validation and error display
+        function validateInput(input, errorId, value, name, mustBePositive = false, mustBeInteger = false) {
+            const errorElement = document.getElementById(errorId);
+            input.classList.remove('invalid', 'valid'); // Reset classes
+            errorElement.textContent = '';
+            errorElement.style.display = 'none';
+
+            if (value === '') {
+                errorElement.textContent = `${name} is required`;
+                errorElement.style.display = 'block';
+                input.classList.add('invalid');
+                return false;
+            }
+
+            const numValue = parseFloat(value);
+
+            if (isNaN(numValue)) {
+                errorElement.textContent = `Please enter a valid number for ${name}`;
+                errorElement.style.display = 'block';
+                input.classList.add('invalid');
+                return false;
+            }
+
+            if (mustBePositive && numValue <= 0) {
+                errorElement.textContent = `${name} must be greater than 0`;
+                errorElement.style.display = 'block';
+                input.classList.add('invalid');
+                return false;
+            }
+
+            if (mustBeInteger && !Number.isInteger(numValue)) {
+                errorElement.textContent = `${name} must be an integer`;
+                errorElement.style.display = 'block';
+                input.classList.add('invalid');
+                return false;
+            }
+
+            input.classList.add('valid');
+            return true;
+        }
+
+        function resetValidation() {
+            const errorElements = document.querySelectorAll('.error');
+            errorElements.forEach(el => {
+                el.textContent = '';
+                el.style.display = 'none';
+            });
+
+            const inputs = document.querySelectorAll('input, select');
+            inputs.forEach(input => {
+                input.classList.remove('invalid', 'valid');
+            });
+        }
+
+        // ORIGINAL validateAndCalculate FUNCTION - RESTORED
+        function validateAndCalculate() {
+            // Reset all errors and visual states
+            resetValidation();
+            document.getElementById('result').style.display = 'none'; // Hide calculation results
+            document.getElementById('aiResponse').style.display = 'none'; // Hide AI results
+
+            // Get input values
+            const areaInput = document.getElementById('area');
+            const areaValue = areaInput.value.trim();
+            const areaUnit = document.getElementById('areaUnit').value;
+
+            const subInput = document.getElementById('subcarriers');
+            const subValue = subInput.value.trim();
+
+            const callsInput = document.getElementById('callsPerDay');
+            const callsValue = callsInput.value.trim();
+
+            const durationInput = document.getElementById('callDuration');
+            const durationValue = durationInput.value.trim();
+
+            const sirInput = document.getElementById('minSIR');
+            const sirValue = sirInput.value.trim();
+            const sirUnit = document.getElementById('sirUnit').value;
+
+            const powerInput = document.getElementById('refPower');
+            const powerValue = powerInput.value.trim();
+            const powerUnit = document.getElementById('powerUnit').value;
+
+            const distanceInput = document.getElementById('refDistance');
+            const distanceValue = distanceInput.value.trim();
+
+            const pathInput = document.getElementById('pathLoss');
+            const pathValue = pathInput.value.trim();
+
+            const rxInput = document.getElementById('rxSensitivity');
+            const rxValue = rxInput.value.trim();
+
+            let isValid = true;
+
+            // Validate all inputs
+            // The `validateInput` function now also sets `isValid` based on its return.
+            if (!validateInput(areaInput, 'areaError', areaValue, 'Service area', true)) isValid = false;
+            else if (areaUnit === 'km2' && parseFloat(areaValue) > 1000000) { // Specific check for km2, as in original logic
+                document.getElementById('areaError').textContent = 'Area in km² is too large (max 1,000,000)';
+                document.getElementById('areaError').style.display = 'block';
+                areaInput.classList.add('invalid');
+                isValid = false;
+            }
+
+            if (!validateInput(subInput, 'subError', subValue, 'Number of subcarriers', true, true)) isValid = false;
+            if (!validateInput(callsInput, 'callsError', callsValue, 'Number of calls', true)) isValid = false;
+            if (!validateInput(durationInput, 'durationError', durationValue, 'Call duration', true)) isValid = false;
+            if (!validateInput(sirInput, 'sirError', sirValue, 'Minimum SIR')) isValid = false;
+            if (!validateInput(powerInput, 'powerError', powerValue, 'Reference power')) isValid = false;
+            if (!validateInput(distanceInput, 'distanceError', distanceValue, 'Reference distance', true)) isValid = false;
+            if (!validateInput(pathInput, 'pathError', pathValue, 'Path loss exponent', true)) isValid = false;
+            if (!validateInput(rxInput, 'rxError', rxValue, 'Receiver sensitivity', true)) isValid = false;
+
+
+            if (!isValid) {
+                return; // Stop if any validation fails
+            }
+
+            // Perform calculations
+            const area = areaUnit === 'km2' ? parseFloat(areaValue) * 1000000 : parseFloat(areaValue);
+            const subcarriers = parseInt(subValue);
+            const callsPerDay = parseFloat(callsValue);
+            const callDuration = parseFloat(durationValue);
+            const refDistance = parseFloat(distanceValue);
+            const pathLoss = parseFloat(pathValue);
+            const rxSensitivity = parseFloat(rxValue) / 1000000; // μW to W
+
+            // Convert SIR to linear scale
+            let sirLinear;
+            if (sirUnit === 'dB') {
+                sirLinear = Math.pow(10, parseFloat(sirValue) / 10);
+            } else if (sirUnit === 'dBm') { // Convert dBm to linear, then use that linear value
+                sirLinear = Math.pow(10, (parseFloat(sirValue) - 30) / 10);
+            } else if (sirUnit === 'W') { // Already in linear Watt, use directly
+                sirLinear = parseFloat(sirValue);
+            }
+
+            // Convert reference power to linear scale (Watt)
+            let refPowerLinear;
+            if (powerUnit === 'dB') {
+                refPowerLinear = Math.pow(10, parseFloat(powerValue) / 10);
+            } else if (powerUnit === 'dBm') {
+                refPowerLinear = Math.pow(10, (parseFloat(powerValue) - 30) / 10);
+            } else if (powerUnit === 'W') {
+                refPowerLinear = parseFloat(powerValue);
+            }
+
+            // 1. Calculate maximum distance
+            const maxDistance = refDistance * Math.pow(refPowerLinear / rxSensitivity, 1 / pathLoss);
+
+            // 2. Calculate cell area (assuming hexagonal cell geometry)
+            const cellArea = (3 * Math.sqrt(3) / 2) * Math.pow(maxDistance, 2);
+
+            // 3. Calculate number of cells
+            const numCells = Math.ceil(area / cellArea);
+
+            // 4. Calculate total traffic load (Erlangs)
+            const totalTraffic = (callsPerDay * (callDuration / 60) * subcarriers) / 1440; // Total traffic over 24 hours
+
+            // 5. Calculate traffic per cell
+            const cellTraffic = totalTraffic / numCells;
+
+            // 6. Calculate cells per cluster (N)
+            // Using the formula for N = (1/3) * (6 * SIR_linear)^(2/n) for hexagonal cells
+            const N = (1/3) * Math.pow(6 * sirLinear, 2 / pathLoss);
+
+            const validClusterSizes = [1, 3, 4, 7, 9, 12, 13, 16, 19, 21, 28];
+            // Find the smallest valid cluster size >= N
+            let cellsPerCluster = validClusterSizes.find(size => size >= N) || validClusterSizes[validClusterSizes.length - 1];
+
+
+            // Display results
+            document.getElementById('maxDistance').textContent = maxDistance.toFixed(2);
+            document.getElementById('cellArea').textContent = cellArea.toFixed(2);
+            document.getElementById('numCells').textContent = numCells;
+            document.getElementById('totalTraffic').textContent = totalTraffic.toFixed(2);
+            document.getElementById('cellTraffic').textContent = cellTraffic.toFixed(2);
+            document.getElementById('cellsPerCluster').textContent = cellsPerCluster;
+
+            document.getElementById('result').style.display = 'block';
+
+            // Store results for AI
+            currentCellularResults = {
+                maxDistance: maxDistance,
+                cellArea: cellArea,
+                numCells: numCells,
+                totalTraffic: totalTraffic,
+                cellTraffic: cellTraffic,
+                cellsPerCluster: cellsPerCluster
+            };
+
+            // --- AUTO-TRIGGER AI INSIGHTS AFTER SUCCESSFUL CALCULATION ---
+            const allCellularData = collectAllCellularData(); // Pass original values for display in AI context
+
+            // Construct the detailed prompt for the AI based on the specified inputs and outputs
+            const autoAiQuestion = `Given the following Cellular Network parameters and calculated results:
+
+Input Parameters:
+  - Service Area: ${areaValue} ${areaUnit}
+  - Number of Subcarriers: ${subValue}
+  - Number of Calls per Day: ${callsValue}
+  - Average Call Duration: ${durationValue} minutes
+  - Minimum SIR: ${sirValue} ${sirUnit}
+  - Power at Reference Distance: ${powerValue} ${powerUnit}
+  - Reference Distance: ${distanceValue} m
+  - Path Loss Exponent: ${pathValue}
+  - Receiver Sensitivity: ${rxValue} μW
+
+Calculated Results:
+  - Maximum Distance: ${currentCellularResults.maxDistance.toFixed(2)} m
+  - Cell Area: ${currentCellularResults.cellArea.toFixed(2)} m²
+  - Number of Cells: ${currentCellularResults.numCells}
+  - Total Traffic Load: ${currentCellularResults.totalTraffic.toFixed(2)} Erlangs
+  - Traffic per Cell: ${currentCellularResults.cellTraffic.toFixed(2)} Erlangs
+  - Cells per Cluster: ${currentCellularResults.cellsPerCluster}
+
+Please provide a concise analysis of this cellular network design. Explain the significance of each calculated parameter (Maximum Distance, Cell Area, Number of Cells, Total Traffic Load, Traffic per Cell, Cells per Cluster) in the context of the input parameters. Discuss how each input parameter affects the overall network performance and capacity.`;
+
+            aiQuestionInput.value = autoAiQuestion; // Set the textarea with the auto-generated question
+            sendAiRequest(autoAiQuestion, allCellularData.input_data, allCellularData.calculated_results);
+            // --- END AUTO-TRIGGER ---
+        }
+
+        // --- AI Integration JavaScript ---
+        const getAiInsightsBtn = document.getElementById('getAiInsightsBtn');
+        const aiQuestionInput = document.getElementById('aiQuestion');
+        const aiResponseContainer = document.getElementById('aiResponse');
+        const aiResponseContentDiv = document.getElementById('aiResponseContent');
+        const aiButtonText = document.getElementById('aiButtonText');
+
+        // Function to collect all current input and raw calculated data for AI
+        function collectAllCellularData() {
+            const inputData = {
+                'Service Area': `${document.getElementById('area').value} ${document.getElementById('areaUnit').value}`,
+                'Number of Subcarriers': document.getElementById('subcarriers').value,
+                'Number of Calls per Day': document.getElementById('callsPerDay').value,
+                'Average Call Duration': `${document.getElementById('callDuration').value} minutes`,
+                'Minimum SIR': `${document.getElementById('minSIR').value} ${document.getElementById('sirUnit').value}`,
+                'Power at Reference Distance': `${document.getElementById('refPower').value} ${document.getElementById('powerUnit').value}`,
+                'Reference Distance': `${document.getElementById('refDistance').value} m`,
+                'Path Loss Exponent': document.getElementById('pathLoss').value,
+                'Receiver Sensitivity': `${document.getElementById('rxSensitivity').value} μW`
+            };
+
+            return {
+                input_data: inputData,
+                calculated_results: currentCellularResults // Use the globally stored calculated results
+            };
+        }
+
+        // Function to send AI request
+        async function sendAiRequest(userQuestion, inputData, calculatedResults) {
+            aiResponseContentDiv.style.color = '#333';
+            aiResponseContentDiv.textContent = "AI is thinking...";
+            aiResponseContainer.style.display = 'block';
+            getAiInsightsBtn.disabled = true;
+            aiButtonText.innerHTML = '<div class="loading"></div> Processing...';
+
+            try {
+                const payload = {
+                    user_ai_question: userQuestion,
+                    input_data: inputData,
+                    calculated_results: calculatedResults
+                };
+
+                // In a real application, you would replace this with an actual API call to your backend
+                // that then interacts with the Google Gemini API.
+                // For this demonstration, we simulate the AI response after a short delay.
+                const response = await new Promise(resolve => setTimeout(() => {
+                    // Simulate a successful response
+                    resolve({
+                        ok: true,
+                        json: () => Promise.resolve({
+                            ai_response: `AI Analysis of your Cellular Network:
+
+The **Maximum Distance** (${calculatedResults.maxDistance.toFixed(2)} m) represents the furthest point a mobile device can be from a base station and still receive a usable signal given the transmit power, path loss, and receiver sensitivity. It defines the physical coverage limit of a single cell.
+
+The **Cell Area** (${calculatedResults.cellArea.toFixed(2)} m²) is the estimated geographical area covered by a single cellular base station, derived from the maximum distance. This value is crucial for planning the number of cells required to cover a larger service area.
+
+The **Number of Cells** (${calculatedResults.numCells}) is the total count of base stations needed to cover the entire specified Service Area based on the calculated Cell Area. This is a primary metric for network deployment cost and complexity.
+
+The **Total Traffic Load** (${calculatedResults.totalTraffic.toFixed(2)} Erlangs) quantifies the total demand on the network in terms of continuous voice or data communication. It's an aggregate measure of how busy the network is expected to be based on the number of calls, their duration, and the available subcarriers. An Erlang represents one hour of continuous call activity.
+
+The **Traffic per Cell** (${calculatedResults.cellTraffic.toFixed(2)} Erlangs) is the average traffic load each individual cell is expected to handle. This directly impacts the capacity requirements of each base station and helps in dimensioning the cell's resources (e.g., number of channels).
+
+**Cells per Cluster** (${calculatedResults.cellsPerCluster}) indicates the frequency reuse pattern. It's the number of cells in a cluster that use a complete set of available frequencies, without reusing any frequency within the cluster. A larger cluster size (higher N) means less interference between cells but lower spectral efficiency. It's calculated based on the Minimum SIR and Path Loss Exponent to meet quality requirements.
+
+**How input parameters affect performance:**
+
+* **Service Area:** Directly dictates the required **Number of Cells**. A larger area needs more cells.
+* **Number of Subcarriers, Calls per Day, Average Call Duration:** These directly determine the **Total Traffic Load**, which in turn influences **Traffic per Cell** and the required capacity per base station.
+* **Minimum SIR:** A higher minimum SIR requirement (better signal quality) demands a larger **Cells per Cluster** (N) to reduce co-channel interference, potentially reducing spectral efficiency.
+* **Power at Reference Distance, Reference Distance, Path Loss Exponent, Receiver Sensitivity:** These are critical for determining the **Maximum Distance** a signal can travel reliably, which then dictates the **Cell Area**. Higher transmit power, lower path loss, and better receiver sensitivity all contribute to a larger maximum distance and thus larger cell area, potentially reducing the **Number of Cells** needed for a given **Service Area**.
+* **Path Loss Exponent:** A higher exponent means the signal attenuates faster with distance, reducing the **Maximum Distance** and requiring more cells.
+
+This analysis highlights the interconnectedness of these parameters in designing a robust and efficient cellular network.`
+                        })
+                    });
+                }, 2000)); // Simulate 2 seconds delay
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({error: 'Unknown error'}));
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                aiResponseContentDiv.textContent = data.ai_response;
+
+            } catch (error) {
+                console.error('Error getting AI insights:', error);
+                aiResponseContentDiv.textContent = `Error: ${error.message}. Please ensure your backend server is running and configured correctly to handle AI requests. For demonstration, this AI response is simulated.`;
+                aiResponseContentDiv.style.color = 'var(--warning)'; // Red for error
+            } finally {
+                getAiInsightsBtn.disabled = false;
+                aiButtonText.textContent = 'Get AI Insights';
+            }
+        }
+
+        // Event listener for the "Get AI Insights" button (for custom questions)
+        getAiInsightsBtn.addEventListener('click', async () => {
+            const userAiQuestion = aiQuestionInput.value.trim();
+
+            if (!userAiQuestion) {
+                aiResponseContentDiv.textContent = "Please ask a question for AI insights.";
+                aiResponseContentDiv.style.color = 'var(--warning)'; // Error color
+                aiResponseContainer.style.display = 'block'; // Show container
+                return;
+            }
+
+            // Ensure a calculation has been performed before requesting AI insights for custom questions
+            if (Object.keys(currentCellularResults).length === 0 || isNaN(currentCellularResults.maxDistance)) {
+                aiResponseContentDiv.textContent = "Please calculate Network Parameters first before asking the AI a question.";
+                aiResponseContentDiv.style.color = 'var(--warning)';
+                aiResponseContainer.style.display = 'block';
+                return;
+            }
+
+            const allCellularData = collectAllCellularData(); // Collect current data including raw calculated results
+            sendAiRequest(userAiQuestion, allCellularData.input_data, allCellularData.calculated_results);
+        });
+        // --- End AI Integration JavaScript ---
+    </script>
+</body>
+</html>

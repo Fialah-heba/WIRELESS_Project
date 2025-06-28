@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OFDM System Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+          --primary: #2c3e50;
+          --secondary: #1a252f;
+          --accent: #3498db;
+          --light: #ecf0f1;
+          --dark: #2c3e50;
+          --warning: #e74c3c;
+          --valid: #2ecc71;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            color: var(--dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            animation: fadeIn 0.6s ease-out;
+            border: 1px solid var(--primary);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.8rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-header p {
+            margin-top: 5px;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .card-body {
+            padding: 25px;
+            background-color: var(--light);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+            font-size: 0.95rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-sizing: border-box;
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .unit-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .unit-group input {
+            flex: 3;
+        }
+
+        .unit-group select {
+            flex: 1;
+        }
+
+        .btn {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn:hover {
+            background: linear-gradient(to right, var(--secondary), var(--primary));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .results-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 25px;
+            display: none;
+            animation: slideUp 0.4s ease-out;
+            border: 1px solid var(--accent);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .panel-title {
+            color: var(--secondary);
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .result-value {
+            font-weight: 600;
+            color: var(--secondary);
+            font-family: 'Courier New', monospace;
+        }
+
+        .error {
+            color: var(--warning);
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .loading {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 1.2rem;
+            height: 1.2rem;
+            animation: spin 1s linear infinite;
+            margin-right: 0.75rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #aiResponseContent {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.95em;
+            line-height: 1.7;
+            padding: 1.2rem;
+            text-align: justify;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #2c3e50;
+            background-color: #fefefe;
+            border-radius: 0.5rem;
+            border: 1px solid #ddd;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.03);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Calculator Card -->
+        <div class="card">
+            <div class="card-header">
+                <h2>OFDM System Calculator</h2>
+                <p>Data Rate and Spectral Efficiency Calculator</p>
+            </div>
+
+            <div class="card-body">
+                <div class="input-group">
+                    <label for="bandwidth">Bandwidth </label>
+                    <div class="unit-group">
+                        <input type="number" id="bandwidth" min="1" required>
+                        <select id="bandwidthUnit">
+                            <option value="Hz">Hz</option>
+                            <option value="kHz">kHz</option>
+                            <option value="MHz" selected>MHz</option>
+                            <option value="GHz">GHz</option>
+                        </select>
+                    </div>
+                    <span id="bwError" class="error"></span>
+                </div>
+
+                <div class="input-group">
+                    <label for="dataRate">Data Rate </label>
+                    <div class="unit-group">
+                        <input type="number" id="dataRate" min="1" required>
+                        <select id="dataRateUnit">
+                            <option value="bps">bps</option>
+                            <option value="kbps">kbps</option>
+                            <option value="Mbps" selected>Mbps</option>
+                            <option value="Gbps">Gbps</option>
+                        </select>
+                    </div>
+                    <span id="drError" class="error"></span>
+                </div>
+
+                <div class="input-group">
+                    <label for="subcarrierSpacing">Subcarrier Spacing </label>
+                    <div class="unit-group">
+                        <input type="number" id="subcarrierSpacing" min="1" required>
+                        <select id="subcarrierUnit">
+                            <option value="Hz">Hz</option>
+                            <option value="kHz" selected>kHz</option>
+                            <option value="MHz">MHz</option>
+                        </select>
+                    </div>
+                    <span id="ssError" class="error"></span>
+                </div>
+
+                <div class="input-group">
+                    <label for="ofdmSymbols">Number of OFDM Symbols </label>
+                    <input type="number" id="ofdmSymbols" min="1" required>
+                    <span id="osError" class="error"></span>
+                </div>
+
+                <div class="input-group">
+                    <label for="rbDuration">Resource Block Duration </label>
+                    <div class="unit-group">
+                        <input type="number" id="rbDuration" min="0.001" step="0.001" required>
+                        <select id="durationUnit">
+                            <option value="s">seconds</option>
+                            <option value="ms" selected>milliseconds</option>
+                            <option value="μs">microseconds</option>
+                            <option value="ns">nanoseconds</option>
+                        </select>
+                    </div>
+                    <span id="rdError" class="error"></span>
+                </div>
+
+                <div class="input-group">
+                    <label for="qamOrder">QAM Order </label>
+                    <input type="number" id="qamOrder" min="4" step="1" required>
+                    <span id="qoError" class="error"></span>
+                </div>
+
+                <div class="input-group">
+                    <label for="parallelRB">Number of Parallel Resource Blocks </label>
+                    <input type="number" id="parallelRB" min="1" required>
+                    <span id="prError" class="error"></span>
+                </div>
+
+                <button class="btn" onclick="validateAndCalculate()">Calculate OFDM Parameters</button>
+
+                <div class="results-panel" id="result">
+                    <h3 class="panel-title">OFDM Calculation Results</h3>
+                    <div class="result-item">
+                        <span class="result-label">Bits per Resource Element </span>
+                        <span class="result-value" id="bitsPerRE">0 bits</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Bits per OFDM Symbol </span>
+                        <span class="result-value" id="bitsPerSymbol">0 bits</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Bits per Resource Block </span>
+                        <span class="result-value" id="bitsPerRB">0 bits</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Maximum Transmission Capacity </span>
+                        <span class="result-value" id="maxCapacity">0 bps</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Spectral Efficiency </span>
+                        <span class="result-value" id="spectralEff">0 bps/Hz</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Card -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Get AI Insights</h2>
+                <p>Ask the AI about your calculated OFDM system parameters</p>
+            </div>
+            <div class="card-body">
+                <div class="input-group">
+                    <label for="aiQuestion">Your Question for the AI:</label>
+                    <textarea id="aiQuestion" rows="4" placeholder="e.g., 'Explain the relationship between QAM Order and Spectral Efficiency in this system.'"></textarea>
+                </div>
+                <button class="btn" id="getAiInsightsBtn">
+                    <span id="aiButtonText">Get AI Insights</span>
+                </button>
+                <div class="results-panel" id="aiResponse">
+                    <h3 class="panel-title">AI Assistant's Explanation</h3>
+                    <div id="aiResponseContent">Your AI-generated explanation will appear here.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Helper function to convert units to base units (Hz, bps, seconds)
+        function convertToBase(value, unit) {
+            switch(unit) {
+                case 'kHz': return value * 1e3;
+                case 'MHz': return value * 1e6;
+                case 'GHz': return value * 1e9;
+                case 'kbps': return value * 1e3;
+                case 'Mbps': return value * 1e6;
+                case 'Gbps': return value * 1e9;
+                case 'ms': return value / 1e3;
+                case 'μs': return value / 1e6;
+                case 'ns': return value / 1e9;
+                default: return value; // Assumed base unit (Hz, bps, s)
+            }
+        }
+
+        // Check if a number is a power of two
+        function isPowerOfTwo(n) {
+            return n > 0 && (n & (n - 1)) === 0;
+        }
+
+        // Global variable to store raw calculated results for AI
+        let currentOFDMCalculatedResults = {};
+
+        function validateAndCalculate() {
+            // Reset all errors and visual states
+            resetValidation();
+
+            // Get input values
+            const bwInput = document.getElementById('bandwidth');
+            const bwValue = bwInput.value.trim();
+            const bwUnit = document.getElementById('bandwidthUnit').value;
+
+            const drInput = document.getElementById('dataRate');
+            const drValue = drInput.value.trim();
+            const drUnit = document.getElementById('dataRateUnit').value;
+
+            const ssInput = document.getElementById('subcarrierSpacing');
+            const ssValue = ssInput.value.trim();
+            const ssUnit = document.getElementById('subcarrierUnit').value;
+
+            const osInput = document.getElementById('ofdmSymbols');
+            const osValue = osInput.value.trim();
+
+            const rdInput = document.getElementById('rbDuration');
+            const rdValue = rdInput.value.trim();
+            const rdUnit = document.getElementById('durationUnit').value;
+
+            const qoInput = document.getElementById('qamOrder');
+            const qoValue = qoInput.value.trim();
+
+            const prInput = document.getElementById('parallelRB');
+            const prValue = prInput.value.trim();
+
+            let isValid = true;
+
+            // Validate Bandwidth (BW > 0)
+            if (bwValue === '' || isNaN(bwValue)) {
+                showError('bwError', 'Bandwidth is required');
+                bwInput.classList.add('invalid');
+                isValid = false;
+            } else if (parseFloat(bwValue) <= 0) {
+                showError('bwError', 'Bandwidth must be greater than 0');
+                bwInput.classList.add('invalid');
+                isValid = false;
+            }
+
+            // Validate Data Rate (>0)
+            if (drValue === '' || isNaN(drValue)) {
+                showError('drError', 'Data rate is required');
+                drInput.classList.add('invalid');
+                isValid = false;
+            } else if (parseFloat(drValue) <= 0) {
+                showError('drError', 'Data rate must be greater than 0');
+                drInput.classList.add('invalid');
+                isValid = false;
+            }
+
+            // Validate Subcarrier Spacing (>0)
+            if (ssValue === '' || isNaN(ssValue)) {
+                showError('ssError', 'Subcarrier spacing is required');
+                ssInput.classList.add('invalid');
+                isValid = false;
+            } else if (parseFloat(ssValue) <= 0) {
+                showError('ssError', 'Subcarrier spacing must be greater than 0');
+                ssInput.classList.add('invalid');
+                isValid = false;
+            }
+
+            // Convert values for divisibility check (to base units)
+            const bwBase = convertToBase(parseFloat(bwValue), bwUnit);
+            const ssBase = convertToBase(parseFloat(ssValue), ssUnit);
+
+            // Validate that BW is divisible by subcarrier spacing
+            if (isValid && bwValue && ssValue && parseFloat(bwValue) > 0 && parseFloat(ssValue) > 0) {
+                const numSubcarriersCalculated = bwBase / ssBase;
+                if (Math.abs(numSubcarriersCalculated - Math.round(numSubcarriersCalculated)) > 1e-9) {
+                    showError('bwError', 'Bandwidth must be divisible by subcarrier spacing');
+                    showError('ssError', 'Subcarrier spacing must divide bandwidth exactly');
+                    bwInput.classList.add('invalid');
+                    ssInput.classList.add('invalid');
+                    isValid = false;
+                }
+            }
+
+            // Validate OFDM Symbols (integer >0)
+            if (osValue === '' || isNaN(osValue)) {
+                showError('osError', 'Number of symbols is required');
+                osInput.classList.add('invalid');
+                isValid = false;
+            } else if (!Number.isInteger(parseFloat(osValue))) {
+                showError('osError', 'Number of symbols must be an integer');
+                osInput.classList.add('invalid');
+                isValid = false;
+            } else if (parseFloat(osValue) <= 0) {
+                showError('osError', 'Number of symbols must be greater than 0');
+                osInput.classList.add('invalid');
+                isValid = false;
+            }
+
+            // Validate RB Duration (>0)
+            if (rdValue === '' || isNaN(rdValue)) {
+                showError('rdError', 'Duration is required');
+                rdInput.classList.add('invalid');
+                isValid = false;
+            } else if (parseFloat(rdValue) <= 0) {
+                showError('rdError', 'Duration must be greater than 0');
+                rdInput.classList.add('invalid');
+                isValid = false;
+            }
+
+            // Validate QAM Order (integer ≥4, power of 2)
+            if (qoValue === '' || isNaN(qoValue)) {
+                showError('qoError', 'QAM order is required');
+                qoInput.classList.add('invalid');
+                isValid = false;
+            } else if (!Number.isInteger(parseFloat(qoValue))) {
+                showError('qoError', 'QAM order must be an integer');
+                qoInput.classList.add('invalid');
+                isValid = false;
+            } else if (parseFloat(qoValue) < 4) {
+                showError('qoError', 'QAM order must be at least 4');
+                qoInput.classList.add('invalid');
+                isValid = false;
+            } else if (!isPowerOfTwo(parseFloat(qoValue))) {
+                showError('qoError', 'QAM order must be a power of 2 (4, 8, 16, 32, etc.)');
+                qoInput.classList.add('invalid');
+                isValid = false;
+            }
+
+            // Validate Parallel RBs (integer >0)
+            if (prValue === '' || isNaN(prValue)) {
+                showError('prError', 'Number of RBs is required');
+                prInput.classList.add('invalid');
+                isValid = false;
+            } else if (!Number.isInteger(parseFloat(prValue))) {
+                showError('prError', 'Number of RBs must be an integer');
+                prInput.classList.add('invalid');
+                isValid = false;
+            } else if (parseFloat(prValue) <= 0) {
+                showError('prError', 'Number of RBs must be greater than 0');
+                prInput.classList.add('invalid');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                document.getElementById('result').style.display = 'none';
+                document.getElementById('aiResponse').style.display = 'none';
+                return;
+            }
+
+            // All inputs are valid - perform calculations
+            const bw = convertToBase(parseFloat(bwValue), bwUnit);
+            const dr = convertToBase(parseFloat(drValue), drUnit);
+            const ss = convertToBase(parseFloat(ssValue), ssUnit);
+            const os = parseFloat(osValue);
+            const rd = convertToBase(parseFloat(rdValue), rdUnit);
+            const qo = parseFloat(qoValue);
+            const pr = parseFloat(prValue);
+
+            // Calculate core parameters
+            const bitsPerRE = Math.log2(qo);
+            const numSubcarriers = Math.floor(bw / ss);
+
+            // Derived calculations
+            const bitsPerSymbol = bitsPerRE * numSubcarriers;
+            const bitsPerRB = bitsPerSymbol * os;
+            const maxCapacity = (pr * bitsPerRB) / rd;
+            const spectralEff = dr / bw;
+
+            // Store the raw calculated results
+            currentOFDMCalculatedResults = {
+                bitsPerRE: bitsPerRE,
+                bitsPerSymbol: bitsPerSymbol,
+                bitsPerRB: bitsPerRB,
+                maxCapacity: maxCapacity,
+                spectralEff: spectralEff
+            };
+
+            // Display results
+            document.getElementById('bitsPerRE').textContent = bitsPerRE.toFixed(2) + ' bits';
+            document.getElementById('bitsPerSymbol').textContent = bitsPerSymbol.toLocaleString() + ' bits';
+            document.getElementById('bitsPerRB').textContent = bitsPerRB.toLocaleString() + ' bits';
+
+            // Format capacity
+            let maxCapFormatted;
+            if (maxCapacity >= 1e9) {
+                maxCapFormatted = (maxCapacity / 1e9).toFixed(2) + ' Gbps';
+            } else if (maxCapacity >= 1e6) {
+                maxCapFormatted = (maxCapacity / 1e6).toFixed(2) + ' Mbps';
+            } else if (maxCapacity >= 1e3) {
+                maxCapFormatted = (maxCapacity / 1e3).toFixed(2) + ' kbps';
+            } else {
+                maxCapFormatted = maxCapacity.toFixed(2) + ' bps';
+            }
+            document.getElementById('maxCapacity').textContent = maxCapFormatted;
+
+            document.getElementById('spectralEff').textContent = spectralEff.toFixed(4) + ' bps/Hz';
+
+            document.getElementById('result').style.display = 'block';
+
+            // Auto-generate AI question
+            const autoAiQuestion = `Given these OFDM parameters:
+- Bandwidth: ${bwValue} ${bwUnit}
+- Data Rate: ${drValue} ${drUnit}
+- Subcarrier Spacing: ${ssValue} ${ssUnit}
+- OFDM Symbols: ${osValue}
+- RB Duration: ${rdValue} ${rdUnit}
+- QAM Order: ${qoValue}
+- Parallel RBs: ${prValue}
+
+With calculated results:
+- Bits per RE: ${bitsPerRE.toFixed(2)}
+- Bits per Symbol: ${bitsPerSymbol.toLocaleString()}
+- Bits per RB: ${bitsPerRB.toLocaleString()}
+- Max Capacity: ${maxCapFormatted}
+- Spectral Efficiency: ${spectralEff.toFixed(4)} bps/Hz
+
+Please analyze this system's performance and explain the relationships between these parameters.`;
+
+            document.getElementById('aiQuestion').value = autoAiQuestion;
+            sendAiRequest(autoAiQuestion, collectAllOFDMData().input_data, currentOFDMCalculatedResults);
+        }
+
+        function resetValidation() {
+            document.querySelectorAll('.error').forEach(el => {
+                el.textContent = '';
+                el.style.display = 'none';
+            });
+            document.querySelectorAll('input').forEach(input => {
+                input.classList.remove('invalid', 'valid');
+            });
+        }
+
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+
+        // AI Integration
+        const getAiInsightsBtn = document.getElementById('getAiInsightsBtn');
+        const aiQuestionInput = document.getElementById('aiQuestion');
+        const aiResponseContainer = document.getElementById('aiResponse');
+        const aiResponseContentDiv = document.getElementById('aiResponseContent');
+        const aiButtonText = document.getElementById('aiButtonText');
+
+        function collectAllOFDMData() {
+            return {
+                input_data: {
+                    bandwidth: document.getElementById('bandwidth').value + ' ' + document.getElementById('bandwidthUnit').value,
+                    dataRate: document.getElementById('dataRate').value + ' ' + document.getElementById('dataRateUnit').value,
+                    subcarrierSpacing: document.getElementById('subcarrierSpacing').value + ' ' + document.getElementById('subcarrierUnit').value,
+                    ofdmSymbols: document.getElementById('ofdmSymbols').value,
+                    rbDuration: document.getElementById('rbDuration').value + ' ' + document.getElementById('durationUnit').value,
+                    qamOrder: document.getElementById('qamOrder').value,
+                    parallelRB: document.getElementById('parallelRB').value
+                },
+                calculated_results: currentOFDMCalculatedResults
+            };
+        }
+
+        async function sendAiRequest(userQuestion, inputData, calculatedResults) {
+            aiResponseContentDiv.textContent = "AI is thinking...";
+            aiResponseContainer.style.display = 'block';
+            getAiInsightsBtn.disabled = true;
+            aiButtonText.innerHTML = '<div class="loading"></div> Processing...';
+
+            try {
+                const response = await fetch('/get_ai_insights', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_ai_question: userQuestion,
+                        input_data: inputData,
+                        calculated_results: calculatedResults
+                    }),
+                });
+
+                if (!response.ok) throw new Error('Network response was not ok');
+                const data = await response.json();
+                aiResponseContentDiv.textContent = data.ai_response;
+            } catch (error) {
+                console.error('Error:', error);
+                aiResponseContentDiv.textContent = 'Error: ' + error.message;
+            } finally {
+                getAiInsightsBtn.disabled = false;
+                aiButtonText.textContent = 'Get AI Insights';
+            }
+        }
+
+        getAiInsightsBtn.addEventListener('click', () => {
+            const question = aiQuestionInput.value.trim();
+            if (!question) {
+                aiResponseContentDiv.textContent = "Please enter a question";
+                aiResponseContainer.style.display = 'block';
+                return;
+            }
+            if (Object.keys(currentOFDMCalculatedResults).length === 0) {
+                aiResponseContentDiv.textContent = "Please calculate parameters first";
+                aiResponseContainer.style.display = 'block';
+                return;
+            }
+            const allData = collectAllOFDMData();
+            sendAiRequest(question, allData.input_data, allData.calculated_results);
+        });
+    </script>
+</body>
+</html>
